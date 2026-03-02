@@ -14,6 +14,7 @@ CUST_PATTERN = re.compile(r"^CUST\d{6,}$")
 with st.expander("Base URL being used"):
     st.code(REC_BASE)
 
+st.caption(f"Mode: {'MOCK' if settings.MOCK_MODE else 'LIVE'}")
 st.write("Enter customer_id and n → click **Get Recommendations**.")
 
 with st.form("rec_form"):
@@ -32,6 +33,35 @@ if submitted:
         st.error("Invalid customer_id format. Use format like CUST000001.")
         st.stop()
 
+    # ✅ MOCK fallback for Render / missing API URLs
+    if settings.MOCK_MODE:
+        data = {
+            "customer_id": customer_id,
+            "recommendations": [
+                {"product_id": "P1001", "product_name": "Wireless Earbuds", "category": "Electronics", "predicted_score": 0.91},
+                {"product_id": "P2004", "product_name": "Running Shoes", "category": "Footwear", "predicted_score": 0.87},
+                {"product_id": "P3010", "product_name": "Coffee Beans", "category": "Grocery", "predicted_score": 0.83},
+                {"product_id": "P4012", "product_name": "Water Bottle", "category": "Sports", "predicted_score": 0.79},
+                {"product_id": "P5015", "product_name": "Desk Lamp", "category": "Home", "predicted_score": 0.74},
+            ][:n],
+            "model_version": "mock-v1",
+            "timestamp": "2026-03-02T00:00:00Z",
+        }
+
+        recs = data.get("recommendations", [])
+        st.caption(f"Model: {data.get('model_version')} | Timestamp: {data.get('timestamp')}")
+
+        if recs:
+            st.dataframe(recs, use_container_width=True)
+        else:
+            st.warning("No recommendations returned.")
+
+        with st.expander("Raw API response (mock)"):
+            st.json(data)
+
+        st.stop()
+
+    # ✅ LIVE mode
     endpoint = f"{REC_BASE}/recommend/{customer_id}"
     params = {"n": n}
 

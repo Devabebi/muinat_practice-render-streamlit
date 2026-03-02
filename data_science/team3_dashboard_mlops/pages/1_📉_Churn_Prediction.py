@@ -13,6 +13,7 @@ CHURN_ENDPOINT = f"{CHURN_BASE}/predict/churn"
 with st.expander("Endpoint being used"):
     st.code(CHURN_ENDPOINT)
 
+st.caption(f"Mode: {'MOCK' if settings.MOCK_MODE else 'LIVE'}")
 st.write("Fill inputs → click **Predict** → see churn response.")
 
 with st.form("churn_form"):
@@ -42,6 +43,31 @@ if submitted:
         },
     }
 
+    # ✅ MOCK fallback for Render / missing API URLs
+    if settings.MOCK_MODE:
+        data = {
+            "customer_id": customer_id,
+            "churn_probability": 0.78,
+            "churn_prediction": "high_risk",
+            "confidence": 0.88,
+            "model_version": "mock-v1",
+            "timestamp": "2026-03-02T00:00:00Z",
+        }
+
+        colA, colB, colC, colD = st.columns(4)
+        colA.metric("Churn Probability", data.get("churn_probability"))
+        colB.metric("Prediction", data.get("churn_prediction"))
+        colC.metric("Confidence", data.get("confidence"))
+        colD.metric("Model Version", data.get("model_version"))
+
+        st.caption(f"Timestamp: {data.get('timestamp')}")
+
+        with st.expander("Raw API response (mock)"):
+            st.json(data)
+
+        st.stop()
+
+    # ✅ LIVE mode
     try:
         with st.spinner("Calling churn API..."):
             r = requests.post(CHURN_ENDPOINT, json=payload, timeout=10)

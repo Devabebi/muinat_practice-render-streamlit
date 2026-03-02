@@ -1,13 +1,15 @@
 import os
 from dotenv import load_dotenv
 
-# Load variables from the .env file (in your project root)
 load_dotenv()
 
 class Settings:
-    # Default to mock localhost URLs if .env variables are missing
-    CHURN_API_URL = os.getenv("CHURN_API_URL", "http://localhost:8001")
-    REC_API_URL = os.getenv("REC_API_URL", "http://localhost:8012")
+    CHURN_API_URL = os.getenv("CHURN_API_URL", "").strip()
+    REC_API_URL = os.getenv("REC_API_URL", "").strip()
 
-# Single shared settings object to import everywhere
+    MOCK_MODE = (
+        (not CHURN_API_URL) or ("localhost" in CHURN_API_URL) or
+        (not REC_API_URL)   or ("localhost" in REC_API_URL)
+    )
+
 settings = Settings()

@@ -212,3 +212,5 @@ data/
 data_science/feature_store/*.parquet
 
 generate_synthetic_data.py
+
+.streamlit/
